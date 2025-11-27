@@ -1,102 +1,152 @@
-const SHEET_ID = "1k5kAwZvR2uswzKBliEZKE9D1Wlypw1td3S8-specYpQ";
+// =============================
+// 1) إعداد مصدر البيانات
+// =============================
 
-/***********************************************
- *  تحميل بيانات الطالبات من Google Sheets
- ***********************************************/
-async function getSheetData() {
-    // سيتم تعديل هذه الدالة لاحقًا بعد ربط Google API
-    return window.cachedRows || [];
-}
+// رابط ملف البيانات داخل نفس المستودع
+const DATA_URL = "data.json";
 
-/***********************************************
- *  تحميل الجدول الرئيسي
- ***********************************************/
+// مصفوفة الطالبات في الذاكرة
+window.cachedRows = [];
+
+// =============================
+// 2) تحميل البيانات من JSON أو من localStorage
+// =============================
+
 async function loadStudents() {
-
-    console.log("📌 Testing getSheetData...");
-
-    const rows = await getSheetData();
-    console.log("📌 Rows loaded:", rows);
+    console.log("📌 تحميل بيانات الطالبات...");
 
     const tableBody = document.getElementById("tableBody");
     tableBody.innerHTML = "";
 
-    if (!rows || rows.length === 0) {
-        tableBody.innerHTML = "<tr><td colspan='17'>❌ لا توجد بيانات</td></tr>";
-        return;
+    try {
+        let students = [];
+
+        // أولوية: إذا فيه بيانات محفوظة في localStorage نستخدمها
+        const localData = localStorage.getItem("studentsData");
+        if (localData) {
+            console.log("📂 تم تحميل البيانات من localStorage");
+            const parsed = JSON.parse(localData);
+            students = parsed.students || [];
+        } else {
+            // إذا لا توجد بيانات محلية → نقرأ من data.json
+            console.log("🌐 تحميل البيانات من data.json");
+            const res = await fetch(DATA_URL);
+            const json = await res.json();
+            students = json.students || [];
+
+            // نحفظ نسخة في localStorage لاستخدامها لاحقًا
+            localStorage.setItem("studentsData", JSON.stringify({ students }));
+        }
+
+        // نخزنها في الذاكرة للوصول لها من الدوال الأخرى
+        window.cachedRows = students;
+
+        if (!students.length) {
+            tableBody.innerHTML = "<tr><td colspan='12'>❌ لا توجد بيانات</td></tr>";
+            return;
+        }
+
+        // تعبئة الجدول
+        students.forEach((st, index) => {
+            const tr = document.createElement("tr");
+
+            const total = Number(st.exam || 0) +
+                          Number(st.practical || 0) +
+                          Number(st.homework || 0) +
+                          Number(st.discussion || 0);
+
+            // النسبة (من 100) – حسب مجموع 30+30+20+20 = 100
+            const progress = total;
+
+            // الحالة بناءً على المجموع
+            let status = "بحاجة إلى متابعة";
+            if (progress >= 90) status = "ممتازة";
+            else if (progress >= 75) status = "جيدة جدًا";
+            else if (progress >= 60) status = "جيدة";
+
+            tr.innerHTML = `
+                <td>${st.id ?? index + 1}</td>
+                <td>${st.name}</td>
+                <td>${st.class}</td>
+                <td>${st.exam}</td>
+                <td>${st.practical}</td>
+                <td>${st.homework}</td>
+                <td>${st.discussion}</td>
+                <td>${st.attendance ?? "-"}</td>
+                <td>${total}</td>
+                <td>${progress}%</td>
+                <td>${status}</td>
+                <td>
+                    <button class="save-btn" onclick="openStudentCard(${index})">
+                        📝 تفاصيل
+                    </button>
+                </td>
+            `;
+
+            tableBody.appendChild(tr);
+        });
+
+    } catch (err) {
+        console.error("❌ خطأ في تحميل البيانات:", err);
+        tableBody.innerHTML = "<tr><td colspan='12'>⚠ حدث خطأ أثناء تحميل البيانات</td></tr>";
     }
-
-    rows.forEach((row, index) => {
-        if (!row[0]) return;
-
-        const tr = document.createElement("tr");
-
-        tr.innerHTML = `
-            <td>${row[0]}</td>
-            <td>${row[1]}</td>
-            <td>${row[2]}</td>
-            <td>${row[3]}</td>
-            <td>${row[4]}</td>
-            <td>${row[5]}</td>
-            <td>${row[6]}</td>
-            <td>${row[7]}</td>
-            <td>${row[3] + row[4] + row[5] + row[6]}</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
-            <td>تفاصيل</td>
-            <td>❌</td>
-        `;
-
-        tableBody.appendChild(tr);
-    });
 }
 
-/***********************************************
- *  فتح البطاقة الذكية للطالبة
- ***********************************************/
+// =============================
+// 3) فتح البطاقة الذكية للطالبة
+// =============================
+
 function openStudentCard(index) {
-    const row = window.cachedRows[index];
+    const st = window.cachedRows[index];
+    if (!st) return;
 
-    document.getElementById("modal-student-name").innerText = row[1];
-    document.getElementById("modal-class").innerText = "الفصل: " + row[2];
+    window.currentStudentIndex = index;
 
-    // تفريغ الحقول
+    document.getElementById("modal-student-name").innerText = st.name;
+    document.getElementById("modal-class").innerText = "الفصل: " + (st.class || "");
+
+    // تفريغ القوائم
     clearTagLists();
 
-    document.getElementById("input-plan").value = "";
-    document.getElementById("input-report").value = "";
-    document.getElementById("input-parent-contact").value = "";
-    document.getElementById("parent-contact-note").value = "";
+    // تعبئة البيانات السابقة إن وُجدت
+    fillTagsFromArray("list-excellence", st.excellence || []);
+    fillTagsFromArray("list-strength", st.strengths || []);
+    fillTagsFromArray("list-weakness", st.weaknesses || []);
+
+    document.getElementById("input-plan").value   = st.plan || "";
+    document.getElementById("input-report").value = st.report || "";
+
+    const parentSelect = document.getElementById("input-parent-contact");
+    parentSelect.value = st.parentContact || "";
+
+    const parentBox = document.getElementById("parent-contact-box");
+    parentBox.classList.toggle("hidden", parentSelect.value !== "نعم");
+    document.getElementById("parent-contact-note").value = st.parentNote || "";
 
     // إظهار النافذة
     document.getElementById("studentModal").style.display = "block";
-
-    window.currentStudentIndex = index;
 }
 
-/***********************************************
- *  إغلاق البطاقة
- ***********************************************/
 function closeModal() {
     document.getElementById("studentModal").style.display = "none";
 }
 
-/***********************************************
- *  نظام TAGS (نقاط القوة – الضعف – التميز)
- ***********************************************/
+// =============================
+// 4) نظام TAGS (نقاط التميز/القوة/الضعف)
+// =============================
+
 function addTag(inputId, listId) {
     const input = document.getElementById(inputId);
-    const list = document.getElementById(listId);
+    const list  = document.getElementById(listId);
 
-    if (input.value.trim() === "") return;
+    if (!input.value.trim()) return;
 
     const tag = document.createElement("div");
     tag.className = "tag";
-    tag.innerHTML = `${input.value} <span class="remove">&times;</span>`;
+    tag.innerHTML = `
+        <span>${input.value.trim()}</span>
+        <span class="remove">&times;</span>
+    `;
 
     tag.querySelector(".remove").onclick = () => tag.remove();
 
@@ -104,91 +154,91 @@ function addTag(inputId, listId) {
     input.value = "";
 }
 
-document.getElementById("input-excellence")?.addEventListener("keypress", e => {
-    if (e.key === "Enter") addTag("input-excellence", "list-excellence");
-});
-document.getElementById("input-strength")?.addEventListener("keypress", e => {
-    if (e.key === "Enter") addTag("input-strength", "list-strength");
-});
-document.getElementById("input-weakness")?.addEventListener("keypress", e => {
-    if (e.key === "Enter") addTag("input-weakness", "list-weakness");
-});
-
-/***********************************************
- *  تفريغ كل القوائم عند فتح بطاقة جديدة
- ***********************************************/
 function clearTagLists() {
     document.getElementById("list-excellence").innerHTML = "";
-    document.getElementById("list-strength").innerHTML = "";
-    document.getElementById("list-weakness").innerHTML = "";
+    document.getElementById("list-strength").innerHTML   = "";
+    document.getElementById("list-weakness").innerHTML   = "";
 }
 
-/***********************************************
- *  تواصل ولي الأمر (إظهار مربع إضافي)
- ***********************************************/
+function fillTagsFromArray(listId, arr) {
+    const list = document.getElementById(listId);
+    list.innerHTML = "";
+    (arr || []).forEach(text => {
+        if (!text) return;
+        const tag = document.createElement("div");
+        tag.className = "tag";
+        tag.innerHTML = `
+            <span>${text}</span>
+            <span class="remove">&times;</span>
+        `;
+        tag.querySelector(".remove").onclick = () => tag.remove();
+        list.appendChild(tag);
+    });
+}
+
+function extractTags(listId) {
+    const tags = [];
+    document.querySelectorAll(`#${listId} .tag span:first-child`).forEach(span => {
+        const text = span.textContent.trim();
+        if (text) tags.push(text);
+    });
+    return tags;
+}
+
+// إدخال سريع عند الضغط على Enter
+document.getElementById("input-excellence")?.addEventListener("keypress", e => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        addTag("input-excellence", "list-excellence");
+    }
+});
+document.getElementById("input-strength")?.addEventListener("keypress", e => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        addTag("input-strength", "list-strength");
+    }
+});
+document.getElementById("input-weakness")?.addEventListener("keypress", e => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        addTag("input-weakness", "list-weakness");
+    }
+});
+
+// إظهار/إخفاء مربع تواصل ولي الأمر
 document.getElementById("input-parent-contact")?.addEventListener("change", function () {
     const box = document.getElementById("parent-contact-box");
     box.classList.toggle("hidden", this.value !== "نعم");
 });
 
-/***********************************************
- *  زر حفظ داخل البطاقة
- ***********************************************/
+// =============================
+// 5) زر حفظ داخل البطاقة
+//    (يُحدّث البيانات في الذاكرة + localStorage فقط)
+// =============================
+
 function saveStudentCard() {
-    alert("💾 سيتم إضافة حفظ البيانات في Google Sheets في الخطوة القادمة.\nالآن البطاقة جاهزة بالكامل.");
-}
-
-/***********************************************
- *  تحميل البيانات عند فتح الصفحة
- ***********************************************/
-window.addEventListener("load", async () => {
-    console.log("Loading students...");
-
-    // سيتم استدعاء البيانات لاحقًا من Google Sheets
-    loadStudents();
-});
-function extractTags(listId) {
-    const tags = [];
-    document.querySelectorAll(`#${listId} .tag`).forEach(tag => {
-        const text = tag.childNodes[0].textContent.trim();
-        if (text) tags.push(text);
-    });
-    return JSON.stringify(tags); // تحويلها إلى JSON قبل الحفظ
-}
-async function saveStudentCard() {
     const index = window.currentStudentIndex;
-    const row = window.cachedRows[index];
+    const st = window.cachedRows[index];
+    if (!st) return;
 
-    const excellenceJSON = extractTags("list-excellence");  // عمود J (9)
-    const strengthJSON   = extractTags("list-strength");    // عمود K (10)
-    const weaknessJSON   = extractTags("list-weakness");    // عمود L (11)
-    const planText       = document.getElementById("input-plan").value;  // M (12)
-    const parentChoice   = document.getElementById("input-parent-contact").value; // N (13)
-    const reportText     = document.getElementById("input-report").value; // O (14)
+    st.excellence   = extractTags("list-excellence");
+    st.strengths    = extractTags("list-strength");
+    st.weaknesses   = extractTags("list-weakness");
+    st.plan         = document.getElementById("input-plan").value;
+    st.report       = document.getElementById("input-report").value;
+    st.parentContact= document.getElementById("input-parent-contact").value;
+    st.parentNote   = document.getElementById("parent-contact-note").value;
 
-    // تعديل البيانات في الصف داخل الذاكرة أولًا
-    row[9]  = excellenceJSON;
-    row[10] = strengthJSON;
-    row[11] = weaknessJSON;
-    row[12] = planText;
-    row[13] = parentChoice;
-    row[14] = reportText;
+    // حفظ الكل في localStorage
+    localStorage.setItem("studentsData", JSON.stringify({ students: window.cachedRows }));
 
-    // تحديث الصف داخل Google Sheets
-    await updateSheet(
-        SHEET_ID,
-        `Sheet1!J${index + 1}:O${index + 1}`,
-        [[
-            excellenceJSON,
-            strengthJSON,
-            weaknessJSON,
-            planText,
-            parentChoice,
-            reportText
-        ]]
-    );
-
-    alert("تم حفظ بيانات الطالبة بنجاح! 🎉");
+    alert("💾 تم حفظ بيانات الطالبة في هذا الجهاز بنجاح.");
     closeModal();
 }
 
+// =============================
+// 6) تحميل البيانات عند فتح الصفحة
+// =============================
+window.addEventListener("load", () => {
+    loadStudents();
+});
