@@ -45,3 +45,79 @@
 
     <!-- ================================================== -->
     <!--   البطاقة الذكية للطالبة (Modal) - نموذج C جاهز   -->
+    <!-- ================================================== -->
+
+    <div id="studentModal" class="modal hidden">
+        <div class="modal-content modal-large">
+
+            <span class="close" onclick="closeModal()">&times;</span>
+
+            <h2 id="modal-student-name" class="modal-title">اسم الطالبة</h2>
+            <p id="modal-class" class="modal-class">الفصل:</p>
+
+            <!-- نقاط التميز -->
+            <div class="modal-section">
+                <h3>✨ نقاط التميز</h3>
+                <div class="tag-input">
+                    <input id="input-excellence" placeholder="أضيفي نقطة تميز…" />
+                </div>
+                <div id="list-excellence" class="tags-box"></div>
+            </div>
+
+            <!-- نقاط القوة -->
+            <div class="modal-section">
+                <h3>💪 نقاط القوة</h3>
+                <div class="tag-input">
+                    <input id="input-strength" placeholder="أضيفي نقطة قوة…" />
+                </div>
+                <div id="list-strength" class="tags-box"></div>
+            </div>
+
+            <!-- نقاط الضعف -->
+            <div class="modal-section">
+                <h3>⚠ نقاط الضعف</h3>
+                <div class="tag-input">
+                    <input id="input-weakness" placeholder="أضيفي نقطة ضعف…" />
+                </div>
+                <div id="list-weakness" class="tags-box"></div>
+            </div>
+
+            <!-- خطة رفع المستوى -->
+            <div class="modal-section">
+                <h3>📘 خطة رفع المستوى</h3>
+                <textarea id="input-plan" class="modal-textarea" placeholder="أدخلي خطة رفع المستوى…"></textarea>
+            </div>
+
+            <!-- تقرير حديث -->
+            <div class="modal-section">
+                <h3>📝 تقرير حديث</h3>
+                <textarea id="input-report" class="modal-textarea" placeholder="أدخلي ملاحظات أو تقرير حديث…"></textarea>
+            </div>
+
+            <!-- تواصل ولي الأمر -->
+            <div class="modal-section">
+                <h3>👨‍👩‍👧 تواصل ولي الأمر</h3>
+                <select id="input-parent-contact" class="modal-select">
+                    <option value="">اختاري…</option>
+                    <option value="نعم">نعم</option>
+                    <option value="لا">لا</option>
+                </select>
+
+                <div id="parent-contact-box" class="hidden">
+                    <textarea id="parent-contact-note" class="modal-textarea" placeholder="ملخص التواصل…"></textarea>
+                </div>
+            </div>
+
+            <!-- زر الحفظ -->
+            <button onclick="saveStudentCard()" class="save-btn modal-save-btn">💾 حفظ</button>
+        </div>
+    </div>
+
+    <!-- ============================ -->
+    <!-- ملفات JS -->
+    <!-- ============================ -->
+    <script src="sheet-connector.js"></script>
+    <script src="teacher-dashboard.js"></script>
+
+</body>
+</html>
