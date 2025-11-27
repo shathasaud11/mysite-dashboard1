@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <title>لوحة متابعة الطالبات</title>
+  <style>
+    body { font-family: sans-serif; direction: rtl; padding: 20px; }
+    #login { margin-bottom: 20px; }
+    #dashboard { display: none; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #f2f2f2; }
+  </style>
+</head>
+<body>
+
+  <div id="login">
+    <h2>ادخل اسم الطالبة</h2>
+    <input type="text" id="studentName" placeholder="الاسم الثلاثي" />
+    <button onclick="loginStudent()">عرض بياناتي</button>
+  </div>
+
+  <div id="dashboard">
+    <h2>بيانات الطالبة</h2>
+    <div id="studentData"></div>
+  </div>
+
+<script>
+  const SHEET_ID = "1k5kAwZvR2uswzKBliEZKE9D1Wlypw1td3S8-specYpQ";  // من رابط الشيت
+  const SHEET_NAME = "Sheet1";  // غيّري إذا اسم الشيت مختلف
+
+  async function fetchData() {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47, text.length - 2));
+    const rows = json.table.rows;
+
+    // تحويل البيانات إلى مصفوفة من الكائنات
+    const data = rows.map(row => {
+      return row.c.map(cell => (cell ? cell.v : ""));
+    });
+    return data;
+  }
+
+  let allStudents = [];
+
+  function renderStudent(studentArr, headers) {
+    const container = document.getElementById("studentData");
+    container.innerHTML = "";  // تفريغ
+    const tbl = document.createElement("table");
+    const thead = document.createElement("thead");
+    const trh = document.createElement("tr");
+    headers.forEach(h => {
+      const th = document.createElement("th");
+      th.textContent = h;
+      trh.appendChild(th);
+    });
+    thead.appendChild(trh);
+    tbl.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    const tr = document.createElement("tr");
+    studentArr.forEach(v => {
+      const td = document.createElement("td");
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+    tbl.appendChild(tbody);
+
+    container.appendChild(tbl);
+  }
+
+  async function init() {
+    const raw = await fetchData();
+    if (!raw.length) {
+      alert("لا توجد بيانات في الشيت");
+      return;
+    }
+    const headers = raw[0];
+    const data = raw.slice(1);
+    allStudents = data.map(r => {
+      let obj = {};
+      headers.forEach((h, i) => obj[h] = r[i]);
+      return obj;
+    });
+  }
+
+  function loginStudent() {
+    const name = document.getElementById("studentName").value.trim();
+    if (!name) {
+      alert("أرجو إدخال اسم الطالبة");
+      return;
+    }
+    const student = allStudents.find(s => (s["الاسم"] && s["الاسم"].trim() === name));
+    if (!student) {
+      alert("لم أجد طالبة بهذا الاسم");
+      return;
+    }
+    // عرض البيانات
+    document.getElementById("login").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    const headers = Object.keys(student);
+    const values = Object.values(student);
+    renderStudent(values, headers);
+  }
+
+  // عند تحميل الصفحة: جلب البيانات
+  init();
+</script>
+
+</body>
+</html>
+da
