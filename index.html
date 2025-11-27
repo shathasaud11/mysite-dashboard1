@@ -19,4 +19,110 @@
     .header-box {
         width: 95%;
         margin: 25px auto;
-        padding:
+        padding: 40px;
+        border-radius: 20px;
+        background: linear-gradient(to left, #7ac0b3, #a4d4c9);
+        color: #fff;
+        text-align: center;
+        font-size: 26px;
+        line-height: 1.6;
+    }
+
+    .subtext {
+        font-size: 16px;
+        opacity: 0.9;
+    }
+
+    /* الأزرار الرئيسية */
+    .menu-box {
+        width: 90%;
+        margin: 15px auto;
+        padding: 15px 25px;
+        background: white;
+        border-radius: 12px;
+        border-right: 5px solid #79c6b5;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: 0.3s;
+    }
+
+    .menu-box:hover {
+        background: #eefaf7;
+    }
+
+    .emoji {
+        font-size: 24px;
+    }
+
+    /* الأقسام السفلية */
+    .section {
+        width: 90%;
+        margin: 25px auto;
+        padding: 30px;
+        border-radius: 18px;
+        font-size: 22px;
+        background: #fff8e6;
+        border-right: 6px solid #e6c57c;
+        text-align: center;
+        color: #a07a2d;
+    }
+
+    .section.green {
+        background: #e9f9e8;
+        border-right-color: #7bc47f;
+        color: #3b6e3d;
+    }
+
+    .empty-text {
+        font-size: 18px;
+        margin-top: 15px;
+        color: #777;
+    }
+
+</style>
+</head>
+
+<body>
+
+    <!-- صندوق العنوان -->
+    <div class="header-box">
+        <div>لوحة متابعة التقويم الذاتية</div>
+        <div class="subtext">متابعة لأداء الطالبة في مادة تقنية رقمية لعام 1447 هـ</div>
+    </div>
+
+    <!-- أزرار الواجهات -->
+    <div class="menu-box" onclick="goTo('teacher.html')">
+        دخول المعلمة <span class="emoji">🏫</span>
+    </div>
+
+    <div class="menu-box" onclick="goTo('student.html')">
+        لوحة الطالبة <span class="emoji">👩‍💻</span>
+    </div>
+
+    <div class="menu-box" onclick="goTo('parent.html')">
+        لوحة ولي الأمر <span class="emoji">👨‍👩‍👧</span>
+    </div>
+
+    <!-- الأسر الأكثر تفاعلاً -->
+    <div class="section">
+        🏆 الأسر الأكثر تفاعلاً
+        <div class="empty-text">لا توجد تفاعلات بعد</div>
+    </div>
+
+    <!-- الطالبات الأكثر تميزًا -->
+    <div class="section green">
+        ⭐ الطالبات الأكثر تميزًا
+        <div class="empty-text">لا توجد بيانات بعد</div>
+    </div>
+
+<script>
+function goTo(page){
+    window.location.href = page;
+}
+</script>
+
+</body>
+</html>
