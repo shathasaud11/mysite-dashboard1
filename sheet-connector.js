@@ -1,94 +1,86 @@
-/* ============================================================
-   الربط مع Google Sheets API باستخدام Refresh Token
-   ============================================================ */
+// =========================================
+// Secure Google Sheets Connector (GitHub Secrets)
+// =========================================
 
-// ========== إعداد القيم الثابتة ==========
+// 🔐 قراءة المفاتيح من GitHub Actions (Backend Only)
+const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const REFRESH_TOKEN = process.env.GOOGLE_REFRESH_TOKEN;
 
-// رقم الشيت الخاص بك (من الرابط)
-const SPREADSHEET_ID = "1k5kAwZvR2uswzKBliEZKE9D1Wlypw1td3S8-specYpQ";
-
-// معرف الورقة Sheet1
-const SHEET_NAME = "Sheet1";
-
-// رابط API جوجل لتحديث Token
-const GOOGLE_OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token";
-
-// رابط API جوجل للشيت
-const GOOGLE_SHEETS_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}`;
-
-
-// ========== معلومات OAuth الخاصة بك ==========
-const CLIENT_ID = "310671522798-2rpgv3bvgq6s8e3v3xvq6yx3c5rv0zx4.apps.googleusercontent.com";
-const CLIENT_SECRET = "";
-
-// Refresh Token الذي أعطيتِني إياه (آمن لأنه داخل GitHub فقط)
-const REFRESH_TOKEN = "";
-
-
-// ============================================================
-// جلب Access Token جديد من Google باستخدام refresh token
-// ============================================================
+// =========================================
+// Google OAuth Token Refresh
+// =========================================
 
 async function getAccessToken() {
-    const resp = await fetch(GOOGLE_OAUTH_TOKEN_URL, {
+    const url = "https://oauth2.googleapis.com/token";
+
+    const params = new URLSearchParams();
+    params.append("client_id", CLIENT_ID);
+    params.append("client_secret", CLIENT_SECRET);
+    params.append("refresh_token", REFRESH_TOKEN);
+    params.append("grant_type", "refresh_token");
+
+    const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-            client_id: CLIENT_ID,
-            client_secret: CLIENT_SECRET,
-            refresh_token: REFRESH_TOKEN,
-            grant_type: "refresh_token"
-        })
+        body: params,
     });
 
-    const data = await resp.json();
+    const data = await response.json();
+
+    if (!data.access_token) {
+        console.error("❌ Failed to get access token:", data);
+        throw new Error("Access token error");
+    }
+
     return data.access_token;
 }
 
+// =========================================
+// 🔄 قراءة البيانات من Google Sheets
+// =========================================
 
+async function loadSheet(sheetId, range) {
+    const token = await getAccessToken();
 
-// ============================================================
-// قراءة البيانات من Google Sheets
-// ============================================================
+    const url =
+        `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}`;
 
-async function getSheetData() {
-    const accessToken = await getAccessToken();
-
-    const resp = await fetch(`${GOOGLE_SHEETS_URL}!A2:H200`, {
-        headers: {
-            "Authorization": `Bearer ${accessToken}`
-        }
+    const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
     });
 
-    const data = await resp.json();
+    const data = await response.json();
 
     return data.values || [];
 }
 
+// =========================================
+// ✍️ كتابة البيانات في Google Sheets
+// =========================================
 
+async function updateSheet(sheetId, range, values) {
+    const token = await getAccessToken();
 
-// ============================================================
-// حفظ (كتابة) البيانات إلى Google Sheets
-// ============================================================
+    const url =
+        `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?valueInputOption=USER_ENTERED`;
 
-async function updateSheet(rows) {
-    const accessToken = await getAccessToken();
-
-    const resp = await fetch(`${GOOGLE_SHEETS_URL}!A2`, {
+    const response = await fetch(url, {
         method: "PUT",
         headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-            values: rows
-        })
+        body: JSON.stringify({ values }),
     });
 
-    const result = await resp.json();
-    console.log("Save result:", result);
+    const data = await response.json();
 
-    return result;
+    return data;
 }
 
+// =========================================
+// 🌟 Export للملفات الأخرى
+// =========================================
 
+export { loadSheet, updateSheet };
