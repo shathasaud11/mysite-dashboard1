@@ -74,6 +74,9 @@
 
   async function init() {
     const raw = await fetchData();
+    console.log("RAW DATA:", raw);
+    console.log("NUMBER OF ROWS:", raw.length);
+
     if (!raw.length) {
       alert("لا توجد بيانات في الشيت");
       return;
@@ -112,3 +115,4 @@
 
 </body>
 </html>
+
