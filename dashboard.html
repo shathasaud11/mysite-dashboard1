@@ -53,11 +53,22 @@
     console.log("NUMBER OF ROWS:", raw.length);
 
     if (!raw.length) return;
+const headers = [
+  "الاسم",
+  "الرقم",
+  "الفصل",
+  "الاختبارات",
+  "العملي",
+  "الواجبات",
+  "المناقشات",
+  "التعاون",
+  "الحضور",
+  "المجموع",
+  "الحالة"
+];
 
-    const headers = raw[0];
-    console.log("HEADERS:", headers);
+const data = raw;
 
-    const data = raw.slice(1);
 
     allStudents = data.map((row) => {
       let obj = {};
@@ -122,4 +133,5 @@
 
 </body>
 </html>
+
 
