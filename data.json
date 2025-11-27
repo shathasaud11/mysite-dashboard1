@@ -1,0 +1,36 @@
+{
+  "students": [
+    {
+      "id": 1,
+      "name": "أماني شيهان صقر الجابري",
+      "class": "ث3عام/1",
+      "exam": 27,
+      "practical": 29,
+      "homework": 18,
+      "discussion": 20,
+      "attendance": 98,
+      "excellence": [],
+      "strengths": [],
+      "weaknesses": [],
+      "plan": "",
+      "parentContact": "",
+      "report": ""
+    },
+    {
+      "id": 2,
+      "name": "اجوان موسى بن سعود الحربي",
+      "class": "ث3عام/1",
+      "exam": 24,
+      "practical": 25,
+      "homework": 17,
+      "discussion": 18,
+      "attendance": 96,
+      "excellence": [],
+      "strengths": [],
+      "weaknesses": [],
+      "plan": "",
+      "parentContact": "",
+      "report": ""
+    }
+  ]
+}
