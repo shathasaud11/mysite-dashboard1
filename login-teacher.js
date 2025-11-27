@@ -7,7 +7,9 @@ function loginTeacher() {
 
     if (input === TEACHER_PASSWORD) {
         localStorage.setItem("teacherLogged", "true");
+        
         window.location.href = "teacher-dashboard.html";
+
     } else {
         error.textContent = "❌ الرقم السري غير صحيح";
     }
