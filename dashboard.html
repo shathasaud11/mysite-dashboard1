@@ -26,32 +26,53 @@
   </div>
 
 <script>
-  const SHEET_ID = "1k5kAwZvR2uswzKBliEZKE9D1Wlypw1td3S8-specYpQ";  // من رابط الشيت
-  const SHEET_NAME = "Sheet1";  // غيّري إذا اسم الشيت مختلف
+
+  const SHEET_ID = "1k5kAwZvR2uswzKBliEZKE9D1Wlypw1td3S8-specYpQ";
+  const SHEET_NAME = "Sheet1";
 
   async function fetchData() {
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+    const url =
+      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
     const res = await fetch(url);
     const text = await res.text();
     const json = JSON.parse(text.substring(47, text.length - 2));
+
     const rows = json.table.rows;
 
-    // تحويل البيانات إلى مصفوفة من الكائنات
-    const data = rows.map(row => {
-      return row.c.map(cell => (cell ? cell.v : ""));
-    });
+    const data = rows.map((row) => row.c.map((cell) => (cell ? cell.v : "")));
     return data;
   }
 
   let allStudents = [];
 
+  async function init() {
+
+    const raw = await fetchData();
+    console.log("RAW DATA:", raw);
+    console.log("NUMBER OF ROWS:", raw.length);
+
+    if (!raw.length) return;
+
+    const headers = raw[0];
+    const data = raw.slice(1);
+
+    allStudents = data.map((row) => {
+      let obj = {};
+      headers.forEach((h, i) => (obj[h] = row[i]));
+      return obj;
+    });
+
+    console.log("STUDENTS OBJECT:", allStudents);
+  }
+
   function renderStudent(studentArr, headers) {
     const container = document.getElementById("studentData");
-    container.innerHTML = "";  // تفريغ
+    container.innerHTML = "";
     const tbl = document.createElement("table");
     const thead = document.createElement("thead");
     const trh = document.createElement("tr");
-    headers.forEach(h => {
+    headers.forEach((h) => {
       const th = document.createElement("th");
       th.textContent = h;
       trh.appendChild(th);
@@ -61,7 +82,7 @@
 
     const tbody = document.createElement("tbody");
     const tr = document.createElement("tr");
-    studentArr.forEach(v => {
+    studentArr.forEach((v) => {
       const td = document.createElement("td");
       td.textContent = v;
       tr.appendChild(td);
@@ -72,58 +93,30 @@
     container.appendChild(tbl);
   }
 
-async function init() {
-    const raw = await fetchData();
-    console.log("RAW DATA:", raw);
-    console.log("NUMBER OF ROWS:", raw.length);
-
-    if (!raw.length) {
-        alert("لا توجد بيانات في الشيت");
-        return;
-    }
-
-    // الصف الأول = العناوين
-    const headers = raw[0];
-
-    // بقية الصفوف = بيانات الطالبات
-    const data = raw.slice(1);
-
-    allStudents = data.map(row => {
-        let obj = {};
-        headers.forEach((h, i) => {
-            obj[h] = row[i];
-        });
-        return obj;
-    });
-
-    console.log("STUDENTS OBJECT:", allStudents);
-}
-
-
   function loginStudent() {
     const name = document.getElementById("studentName").value.trim();
-    if (!name) {
-      alert("أرجو إدخال اسم الطالبة");
-      return;
-    }
-    const student = allStudents.find(s => (s["الاسم"] && s["الاسم"].trim() === name));
-    if (!student) {
-      alert("لم أجد طالبة بهذا الاسم");
-      return;
-    }
-    // عرض البيانات
+    if (!name) return alert("أرجو إدخال اسم الطالبة");
+
+    const cleanedInput = name.replace(/\s+/g, "").toLowerCase();
+
+    const student = allStudents.find(
+      (s) =>
+        s["الاسم"] &&
+        s["الاسم"].replace(/\s+/g, "").toLowerCase().includes(cleanedInput)
+    );
+
+    if (!student) return alert("لم أجد طالبة بهذا الاسم");
+
     document.getElementById("login").style.display = "none";
     document.getElementById("dashboard").style.display = "block";
+
     const headers = Object.keys(student);
     const values = Object.values(student);
     renderStudent(values, headers);
   }
 
-  // عند تحميل الصفحة: جلب البيانات
   init();
 </script>
 
 </body>
 </html>
-
-
