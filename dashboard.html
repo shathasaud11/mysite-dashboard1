@@ -72,23 +72,33 @@
     container.appendChild(tbl);
   }
 
-  async function init() {
+async function init() {
     const raw = await fetchData();
     console.log("RAW DATA:", raw);
     console.log("NUMBER OF ROWS:", raw.length);
 
     if (!raw.length) {
-      alert("لا توجد بيانات في الشيت");
-      return;
+        alert("لا توجد بيانات في الشيت");
+        return;
     }
+
+    // الصف الأول = العناوين
     const headers = raw[0];
+
+    // بقية الصفوف = بيانات الطالبات
     const data = raw.slice(1);
-    allStudents = data.map(r => {
-      let obj = {};
-      headers.forEach((h, i) => obj[h] = r[i]);
-      return obj;
+
+    allStudents = data.map(row => {
+        let obj = {};
+        headers.forEach((h, i) => {
+            obj[h] = row[i];
+        });
+        return obj;
     });
-  }
+
+    console.log("STUDENTS OBJECT:", allStudents);
+}
+
 
   function loginStudent() {
     const name = document.getElementById("studentName").value.trim();
@@ -115,4 +125,5 @@
 
 </body>
 </html>
+
 
