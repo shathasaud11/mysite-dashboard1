@@ -113,17 +113,17 @@
         </div>
     </div>
 
-    <!-- ============================ -->
+      <!-- ============================ -->
     <!-- ملفات JS -->
     <!-- ============================ -->
-    <script src="sheet-connector.js"></script>
     <script src="teacher-dashboard.js"></script>
-
+    <script>
+        // منع فتح لوحة المعلمة بدون تسجيل دخول
+        if (localStorage.getItem("teacherLogged") !== "true") {
+            window.location.href = "login-teacher.html";
+        }
+    </script>
 </body>
 </html>
-<script>
-if (localStorage.getItem("teacherLogged") !== "true") {
-    window.location.href = "login-teacher.html";
-}
-</script>
+
 
