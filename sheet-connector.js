@@ -1,16 +1,13 @@
-// =========================================
-// Secure Google Sheets Connector (GitHub Secrets)
-// =========================================
-
-// 🔐 قراءة المفاتيح من GitHub Actions (Backend Only)
+/***********************************************
+ *  قراءة المفاتيح السرية من GitHub Secrets
+ ***********************************************/
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REFRESH_TOKEN = process.env.GOOGLE_REFRESH_TOKEN;
 
-// =========================================
-// Google OAuth Token Refresh
-// =========================================
-
+/***********************************************
+ *  تحديث التوكن
+ ***********************************************/
 async function getAccessToken() {
     const url = "https://oauth2.googleapis.com/token";
 
@@ -23,64 +20,68 @@ async function getAccessToken() {
     const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: params,
+        body: params
     });
 
     const data = await response.json();
 
     if (!data.access_token) {
-        console.error("❌ Failed to get access token:", data);
-        throw new Error("Access token error");
+        console.error("❌ Failed to generate access token:", data);
+        throw new Error("Cannot refresh Google access token.");
     }
 
     return data.access_token;
 }
 
-// =========================================
-// 🔄 قراءة البيانات من Google Sheets
-// =========================================
+/***********************************************
+ *  قراءة البيانات من Sheets
+ ***********************************************/
+async function getSheetData() {
+    const accessToken = await getAccessToken();
 
-async function loadSheet(sheetId, range) {
-    const token = await getAccessToken();
-
-    const url =
-        `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet1!A:O`;
 
     const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { "Authorization": `Bearer ${accessToken}` }
     });
 
     const data = await response.json();
 
-    return data.values || [];
+    if (!data.values) return [];
+
+    window.cachedRows = data.values;
+    return data.values;
 }
 
-// =========================================
-// ✍️ كتابة البيانات في Google Sheets
-// =========================================
-
+/***********************************************
+ *  تحديث البيانات في Google Sheets
+ ***********************************************/
 async function updateSheet(sheetId, range, values) {
-    const token = await getAccessToken();
+    const accessToken = await getAccessToken();
 
-    const url =
-        `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?valueInputOption=USER_ENTERED`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?valueInputOption=USER_ENTERED`;
 
     const response = await fetch(url, {
         method: "PUT",
         headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
         },
-        body: JSON.stringify({ values }),
+        body: JSON.stringify({ values })
     });
 
-    const data = await response.json();
+    const result = await response.json();
 
-    return data;
+    if (result.error) {
+        console.error("❌ Error updating sheet:", result);
+        throw new Error(result.error.message);
+    }
+
+    console.log("Sheet updated:", result);
+    return result;
 }
 
-// =========================================
-// 🌟 Export للملفات الأخرى
-// =========================================
-
-export { loadSheet, updateSheet };
+/***********************************************
+ *  تصدير الدوال
+ ***********************************************/
+export { getSheetData, updateSheet };
