@@ -55,6 +55,8 @@
     if (!raw.length) return;
 
     const headers = raw[0];
+    console.log("HEADERS:", headers);
+
     const data = raw.slice(1);
 
     allStudents = data.map((row) => {
@@ -120,3 +122,4 @@
 
 </body>
 </html>
+
