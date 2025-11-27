@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دخول المعلمة</title>
+
+<style>
+    body {
+        font-family: "Cairo", sans-serif;
+        background: #f2f6f7;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
+
+    .container {
+        width: 90%;
+        max-width: 450px;
+        margin: 120px auto;
+        background: white;
+        padding: 35px;
+        border-radius: 18px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+        margin-bottom: 25px;
+        color: #2b5d63;
+    }
+
+    input {
+        width: 80%;
+        padding: 15px;
+        font-size: 18px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    button {
+        width: 85%;
+        padding: 15px;
+        font-size: 20px;
+        border: none;
+        background: #5aa39a;
+        color: white;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    button:hover {
+        background: #3f8279;
+    }
+
+    .error {
+        color: red;
+        margin-top: 15px;
+        display: none;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>🔑 دخول المعلمة</h2>
+
+    <input type="password" id="password" placeholder="أدخلي الرقم السري">
+
+    <button onclick="checkPassword()">دخول</button>
+
+    <p class="error" id="errorMsg">⚠ الرقم السري غير صحيح</p>
+</div>
+
+
+<script>
+function checkPassword() {
+    const pass = document.getElementById("password").value;
+
+    // الرقم السري الحالي ويمكن تغييره بسهولة
+    const correctPassword = "1234";
+
+    if (pass === correctPassword) {
+        window.location.href = "teacher-dashboard.html";  
+    } else {
+        document.getElementById("errorMsg").style.display = "block";
+    }
+}
+</script>
+
+</body>
+</html>
