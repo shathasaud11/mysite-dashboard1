@@ -97,38 +97,24 @@ async function loadStudents() {
 // =============================
 
 function openStudentCard(index) {
-    const st = window.cachedRows[index];
-    if (!st) return;
+    const row = window.cachedRows[index];
 
     window.currentStudentIndex = index;
 
-    document.getElementById("modal-student-name").innerText = st.name;
-    document.getElementById("modal-class").innerText = "الفصل: " + (st.class || "");
+    document.getElementById("modal-student-name").innerText = row[1];
+    document.getElementById("modal-class").innerText = "الفصل: " + row[2];
 
-    // تفريغ القوائم
+    // تفريغ الحقول
     clearTagLists();
-
-    // تعبئة البيانات السابقة إن وُجدت
-    fillTagsFromArray("list-excellence", st.excellence || []);
-    fillTagsFromArray("list-strength", st.strengths || []);
-    fillTagsFromArray("list-weakness", st.weaknesses || []);
-
-    document.getElementById("input-plan").value   = st.plan || "";
-    document.getElementById("input-report").value = st.report || "";
-
-    const parentSelect = document.getElementById("input-parent-contact");
-    parentSelect.value = st.parentContact || "";
-
-    const parentBox = document.getElementById("parent-contact-box");
-    parentBox.classList.toggle("hidden", parentSelect.value !== "نعم");
-    document.getElementById("parent-contact-note").value = st.parentNote || "";
+    document.getElementById("input-plan").value = "";
+    document.getElementById("input-report").value = "";
+    document.getElementById("input-parent-contact").value = "";
 
     // إظهار النافذة
     document.getElementById("studentModal").style.display = "block";
-}
 
-function closeModal() {
-    document.getElementById("studentModal").style.display = "none";
+    // ⭐ تشغيل الذكاء الاصطناعي تلقائيًا
+    generateAI();
 }
 
 // =============================
