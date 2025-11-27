@@ -1,3 +1,5 @@
+const SHEET_ID = "1k5kAwZvR2uswzKBliEZKE9D1Wlypw1td3S8-specYpQ";
+
 /***********************************************
  *  تحميل بيانات الطالبات من Google Sheets
  ***********************************************/
@@ -148,3 +150,48 @@ window.addEventListener("load", async () => {
     // سيتم استدعاء البيانات لاحقًا من Google Sheets
     loadStudents();
 });
+function extractTags(listId) {
+    const tags = [];
+    document.querySelectorAll(`#${listId} .tag`).forEach(tag => {
+        const text = tag.childNodes[0].textContent.trim();
+        if (text) tags.push(text);
+    });
+    return JSON.stringify(tags); // تحويلها إلى JSON قبل الحفظ
+}
+async function saveStudentCard() {
+    const index = window.currentStudentIndex;
+    const row = window.cachedRows[index];
+
+    const excellenceJSON = extractTags("list-excellence");  // عمود J (9)
+    const strengthJSON   = extractTags("list-strength");    // عمود K (10)
+    const weaknessJSON   = extractTags("list-weakness");    // عمود L (11)
+    const planText       = document.getElementById("input-plan").value;  // M (12)
+    const parentChoice   = document.getElementById("input-parent-contact").value; // N (13)
+    const reportText     = document.getElementById("input-report").value; // O (14)
+
+    // تعديل البيانات في الصف داخل الذاكرة أولًا
+    row[9]  = excellenceJSON;
+    row[10] = strengthJSON;
+    row[11] = weaknessJSON;
+    row[12] = planText;
+    row[13] = parentChoice;
+    row[14] = reportText;
+
+    // تحديث الصف داخل Google Sheets
+    await updateSheet(
+        SHEET_ID,
+        `Sheet1!J${index + 1}:O${index + 1}`,
+        [[
+            excellenceJSON,
+            strengthJSON,
+            weaknessJSON,
+            planText,
+            parentChoice,
+            reportText
+        ]]
+    );
+
+    alert("تم حفظ بيانات الطالبة بنجاح! 🎉");
+    closeModal();
+}
+
