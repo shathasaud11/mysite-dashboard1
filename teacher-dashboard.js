@@ -12,46 +12,43 @@ async function getSheetData() {
  *  تحميل الجدول الرئيسي
  ***********************************************/
 async function loadStudents() {
-    const rows = window.cachedRows;
+
+    console.log("📌 Testing getSheetData...");
+
+    const rows = await getSheetData();
+    console.log("📌 Rows loaded:", rows);
+
     const tableBody = document.getElementById("tableBody");
     tableBody.innerHTML = "";
+
+    if (!rows || rows.length === 0) {
+        tableBody.innerHTML = "<tr><td colspan='17'>❌ لا توجد بيانات</td></tr>";
+        return;
+    }
 
     rows.forEach((row, index) => {
         if (!row[0]) return;
 
-        const studentNumber = row[0];
-        const studentName = row[1];
-        const studentClass = row[2];
-        const exam = Number(row[3] || 0);
-        const practical = Number(row[4] || 0);
-        const homework = Number(row[5] || 0);
-        const discussion = Number(row[6] || 0);
-        const attendance = row[7] || "—";
-
-        const total = exam + practical + homework + discussion;
-        const progress = Math.round((total / 100) * 100);
-
-        let status = "";
-        if (total >= 90) status = "ممتازة ⭐";
-        else if (total >= 80) status = "جيدة جدًا ✨";
-        else if (total >= 70) status = "جيدة 👍";
-        else if (total >= 60) status = "مقبولة ✔";
-        else status = "ضعيفة ⚠";
-
         const tr = document.createElement("tr");
+
         tr.innerHTML = `
-            <td>${studentNumber}</td>
-            <td class="clickable-name" data-index="${index}">${studentName}</td>
-            <td>${studentClass}</td>
-            <td>${exam}</td>
-            <td>${practical}</td>
-            <td>${homework}</td>
-            <td>${discussion}</td>
-            <td>${attendance}</td>
-            <td>${total}</td>
-            <td>${progress}%</td>
-            <td>${status}</td>
-            <td><button class="small-btn btn-blue" onclick="openStudentCard(${index})">عرض</button></td>
+            <td>${row[0]}</td>
+            <td>${row[1]}</td>
+            <td>${row[2]}</td>
+            <td>${row[3]}</td>
+            <td>${row[4]}</td>
+            <td>${row[5]}</td>
+            <td>${row[6]}</td>
+            <td>${row[7]}</td>
+            <td>${row[3] + row[4] + row[5] + row[6]}</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>تفاصيل</td>
+            <td>❌</td>
         `;
 
         tableBody.appendChild(tr);
