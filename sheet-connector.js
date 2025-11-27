@@ -84,4 +84,5 @@ async function updateSheet(sheetId, range, values) {
 /***********************************************
  *  تصدير الدوال
  ***********************************************/
-export { getSheetData, updateSheet };
+window.getSheetData = getSheetData;
+window.updateSheet = updateSheet;
